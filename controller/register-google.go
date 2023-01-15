@@ -84,7 +84,7 @@ func (s *Server) CallBackSignUpOauth2(w http.ResponseWriter, r *http.Request) {
 
 	// user.Uuid = jsonData.Id
 
-	user.Nama = jsonData.Email
+	user.Name = jsonData.Email
 	user.Email = jsonData.Email
 
 	createdUserOauth2ToDb, err := user.CreateUser(s.DB)

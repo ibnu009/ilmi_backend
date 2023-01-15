@@ -3,8 +3,24 @@ package response
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
+
+type JsonResponse struct {
+	Status  uint16      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+func GenericJsonResponse(c *gin.Context, statusCode uint16, message string, data interface{}) {
+	res := JsonResponse{
+		Status:  statusCode,
+		Message: message,
+		Data:    data,
+	}
+	c.JSON(int(statusCode), res)
+}
 
 func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.WriteHeader(statusCode)

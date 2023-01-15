@@ -13,15 +13,19 @@ import (
 
 type User struct {
 	Id       uint32 `gorm:"primary_key;auto_increment" json:"id"`
-	Nama     string `gorm:"size:255;not null;" json:"nama"`
+	Name     string `gorm:"size:255;not null;" json:"name"`
 	Email    string `gorm:"size:255;not null;" json:"email"`
 	Password string `gorm:"size:255;not null;" json:"password"`
 	Token    string `gorm:"size:255;not null;" json:"token"`
 }
 
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
 func (u *User) PrepareUser() {
 	u.Id = 0
-	u.Nama = html.EscapeString(strings.TrimSpace(u.Nama))
+	u.Name = html.EscapeString(strings.TrimSpace(u.Name))
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.Password = html.EscapeString(strings.TrimSpace(u.Password))
 	u.Token = html.EscapeString(strings.TrimSpace(u.Token))
@@ -48,8 +52,8 @@ func (u *User) Validate(action string) error {
 		return nil
 
 	default:
-		if u.Nama == "" {
-			return errors.New("Required Nickname")
+		if u.Name == "" {
+			return errors.New("Required Name")
 		}
 		if u.Password == "" {
 			return errors.New("Required Password")
@@ -74,14 +78,17 @@ func (u *User) CreateUser(db *gorm.DB) (*User, error) {
 }
 
 // Read
-func (u *User) GetUserByEmail(db *gorm.DB, email string) (*User, error) {
-	err := db.Where("email = ?", email).First(&u).Error
+func (u *User) GetUserProfile(db *gorm.DB, id int) (*User, error) {
+	err := db.Where("id = ?", id).First(&u).Error
 	if err != nil {
 		return &User{}, err
 	}
 	return u, nil
 }
 
-// Update
-
-// Delete
+func (u *User) IsUserExist(db *gorm.DB) bool {
+	if err := db.Where("email = ?", u.Email).Take(&u).Error; err != nil {
+		return false
+	}
+	return true
+}

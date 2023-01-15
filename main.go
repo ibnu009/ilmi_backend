@@ -18,7 +18,7 @@ func main() {
 		fmt.Println("We are getting the env values")
 	}
 
-	server.InitializeToDb(os.Getenv("DB_DRIVER"), os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+	server.InitializeServer(os.Getenv("DB_DRIVER"), os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
 	server.RunServer(":" + os.Getenv("PORT"))
 
 }

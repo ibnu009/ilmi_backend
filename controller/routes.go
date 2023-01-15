@@ -1,17 +1,16 @@
 package controller
 
-import "os"
-
 func (s *Server) InitializeRoutes() {
 	// Api Is Active
-	s.Router.HandleFunc("/", (s.DefaultServer)).Methods("GET")
+	//s.Router.GET("/", (s.DefaultServer)).Methods("GET")
 
-	s.Router.HandleFunc(os.Getenv("BASE_URL")+"register", s.CreateUser).Methods("POST")
-	s.Router.HandleFunc(os.Getenv("BASE_URL")+"login", s.Login).Methods("POST")
+	v1 := s.Router.Group("/api/v1")
+	{
+		v1.POST("/register", s.CreateUser)
+		v1.POST("/login", s.Login)
 
-	//oauth sigup
-	s.Router.HandleFunc(os.Getenv("BASE_URL")+"oauth2/home", s.HandleHomeSigUp)
-	s.Router.HandleFunc(os.Getenv("BASE_URL")+"oauth2/SignUpOauth2", s.SignUpOauth2).Methods("POST")
-	s.Router.HandleFunc(os.Getenv("BASE_URL")+"oauth2/callback", s.CallBackSignUpOauth2)
+		v1.POST("/sholat/write-sholat-history", s.CreateHistorySholat)
+		v1.GET("/sholat/get-sholat-history", s.GetHistorySholatByDate)
 
+	}
 }

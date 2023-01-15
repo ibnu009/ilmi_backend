@@ -2,13 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"golang.org/x/oauth2"
@@ -17,7 +17,7 @@ import (
 
 type Server struct {
 	DB     *gorm.DB
-	Router *mux.Router
+	Router *gin.Engine
 }
 
 // config to google apis
@@ -45,7 +45,7 @@ func (s *Server) InitializeOauthGoogleConfig() *oauth2.Config {
 }
 
 // config to db local
-func (s *Server) InitializeToDb(DbDriver, DbHost, DbUser, DbPassword, DbName, DbPort string) {
+func (s *Server) InitializeServer(DbDriver, DbHost, DbUser, DbPassword, DbName, DbPort string) {
 	var err error
 	if DbDriver == "mysql" {
 		dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
@@ -57,16 +57,18 @@ func (s *Server) InitializeToDb(DbDriver, DbHost, DbUser, DbPassword, DbName, Db
 			fmt.Printf("connected to the %v database", DbDriver)
 		}
 	}
+	gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
 	// migrate
 	s.DB.AutoMigrate(
 		models.User{},
+		models.HistorySholat{},
 	)
-	s.Router = mux.NewRouter()
+	s.Router = gin.Default()
 	s.InitializeRoutes()
 }
 
 func (s *Server) DefaultServer(w http.ResponseWriter, r *http.Request) {
-	response.JSON(w, http.StatusOK, "Backend Service KSP Amanah Is Running")
+	response.JSON(w, http.StatusOK, "Backend Service Ilmi Is Running")
 }
 
 func (s *Server) RunServer(addr string) {
