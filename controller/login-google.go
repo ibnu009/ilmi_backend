@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"ilmi_backend/auth"
 	formaterror "ilmi_backend/format-error"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
@@ -12,16 +13,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type ResponseGmail struct {
-	Id            string
-	Email         string
-	VerifiedEmail bool
-	Pictures      string
-}
-
-var randomState = "random"
-
-func (s *Server) HandleHomeSigUp(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HandleHomeSigIn(w http.ResponseWriter, r *http.Request) {
 	var html = `
 	<head>
     <title>Google SignIn</title>
@@ -35,8 +27,8 @@ func (s *Server) HandleHomeSigUp(w http.ResponseWriter, r *http.Request) {
 <div class="container">
     <div class="jumbotron text-center text-success">
         <h1><span class="fa fa-lock"></span> Social Authentication</h1>
-        <p>Login or Register with:</p>
-        <a href="/api/v1/oauth2/SignUpOauth2" class="btn btn-danger"><span class="fa fa-google"></span> SignUp with Google</a>
+        <p>Login or Login Google with:</p>
+        <a href="/api/v1/oauth2/SignInOauth2" class="btn btn-danger"><span class="fa fa-google"></span> SignUp with Google</a>
     </div>
 </div>
 </body>
@@ -44,12 +36,12 @@ func (s *Server) HandleHomeSigUp(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, html)
 }
 
-func (s *Server) SignUpOauth2(w http.ResponseWriter, r *http.Request) {
+func (s *Server) SignInOauth2(w http.ResponseWriter, r *http.Request) {
 	urlGmail := s.InitializeOauthGoogleConfig().AuthCodeURL(randomState)
 	http.Redirect(w, r, urlGmail, http.StatusTemporaryRedirect)
 }
 
-func (s *Server) CallBackSignUpOauth2(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CallBackSignInOauth2(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	if r.FormValue("state") != randomState {
 		fmt.Print("state is not valid")
@@ -83,19 +75,30 @@ func (s *Server) CallBackSignUpOauth2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user.Uuid = jsonData.Id
+	loginOauth, err := s.ChekEmailOauth2(jsonData.Email)
 
-	user.Name = jsonData.Email
-	user.Email = jsonData.Email
+	updateTokenUser, err := s.UpdateTokenUser(jsonData.Email, loginOauth)
 
-	createdUserOauth2ToDb, err := user.CreateUser(s.DB)
+	fmt.Print(updateTokenUser)
+
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		response.ERROR(w, http.StatusInternalServerError, formattedError, "")
 		return
 	}
+
 	user.PrepareUser()
 
-	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.RequestURI, createdUserOauth2ToDb.Id))
+	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.RequestURI, loginOauth))
 	fmt.Fprintf(w, "Response: %s", respBody)
+}
+
+// chek email
+func (s *Server) ChekEmailOauth2(email string) (string, error) {
+	user := models.User{}
+	err := s.DB.Where("email = ?", email).Take(&user).Error
+	if err != nil {
+		return "", err
+	}
+	return auth.CreateToken(user.Id)
 }
