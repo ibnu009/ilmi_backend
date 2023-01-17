@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
 
@@ -21,7 +22,7 @@ type ResponseGmail struct {
 
 var randomState = "random"
 
-func (s *Server) HandleHomeSigUp(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HandleHomeSigUp(c *gin.Context) {
 	var html = `
 	<head>
     <title>Google SignIn</title>
@@ -36,54 +37,51 @@ func (s *Server) HandleHomeSigUp(w http.ResponseWriter, r *http.Request) {
     <div class="jumbotron text-center text-success">
         <h1><span class="fa fa-lock"></span> Social Authentication</h1>
         <p>Login or Register with:</p>
-        <a href="/api/v1/oauth2/SignUpOauth2" class="btn btn-danger"><span class="fa fa-google"></span> SignUp with Google</a>
+        <a href="/api/v1/oauth2/registerAuth2" class="btn btn-danger"><span class="fa fa-google"></span> SignUp with Google</a>
     </div>
 </div>
 </body>
 </html>`
-	fmt.Fprint(w, html)
+	fmt.Fprint(c.Writer, html)
 }
 
-func (s *Server) SignUpOauth2(w http.ResponseWriter, r *http.Request) {
+func (s *Server) SignUpOauth2(c *gin.Context) {
 	urlGmail := s.InitializeOauthGoogleConfig().AuthCodeURL(randomState)
-	http.Redirect(w, r, urlGmail, http.StatusTemporaryRedirect)
+	http.Redirect(c.Writer, c.Request, urlGmail, http.StatusTemporaryRedirect)
 }
 
-func (s *Server) CallBackSignUpOauth2(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CallBackSignUpOauth2(c *gin.Context) {
 	user := models.User{}
-	if r.FormValue("state") != randomState {
+	if c.Request.FormValue("state") != randomState {
 		fmt.Print("state is not valid")
-		// http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		response.ERROR(w, http.StatusTemporaryRedirect, nil, "")
+		response.ErrorResponse(c, http.StatusTemporaryRedirect, nil)
 		return
 	}
 
-	token, err := s.InitializeOauthGoogleConfig().Exchange(oauth2.NoContext, r.FormValue("code"))
+	token, err := s.InitializeOauthGoogleConfig().Exchange(oauth2.NoContext, c.Request.FormValue("code"))
 	if err != nil {
 		fmt.Printf("could not get token : %s\n", err.Error())
-		response.ERROR(w, http.StatusTemporaryRedirect, err, "")
+		response.ErrorResponse(c, http.StatusTemporaryRedirect, err)
 		return
-
 	}
 
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
-		fmt.Printf("could not create get reques : %s\n", err.Error())
-		response.ERROR(w, http.StatusTemporaryRedirect, err, "")
+		fmt.Printf("could not create get request : %s\n", err.Error())
+		response.ErrorResponse(c, http.StatusTemporaryRedirect, err)
 		return
 	}
 
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll(resp.Body)
 	var jsonData ResponseGmail
+
 	json.Unmarshal(respBody, &jsonData)
 	if err != nil {
 		fmt.Printf("could not parse response : %s\n", err.Error())
-		response.ERROR(w, http.StatusTemporaryRedirect, err, "")
+		response.ErrorResponse(c, http.StatusTemporaryRedirect, err)
 		return
 	}
-
-	// user.Uuid = jsonData.Id
 
 	user.Name = jsonData.Email
 	user.Email = jsonData.Email
@@ -91,11 +89,11 @@ func (s *Server) CallBackSignUpOauth2(w http.ResponseWriter, r *http.Request) {
 	createdUserOauth2ToDb, err := user.CreateUser(s.DB)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
-		response.ERROR(w, http.StatusInternalServerError, formattedError, "")
+		response.ErrorResponse(c, http.StatusTemporaryRedirect, formattedError)
 		return
 	}
 	user.PrepareUser()
 
-	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.RequestURI, createdUserOauth2ToDb.Id))
-	fmt.Fprintf(w, "Response: %s", respBody)
+	c.Writer.Header().Set("Location", fmt.Sprintf("%s%s/%d", c.Request.Host, c.Request.RequestURI, createdUserOauth2ToDb.Id))
+	fmt.Fprintf(c.Writer, "Response: %s", respBody)
 }

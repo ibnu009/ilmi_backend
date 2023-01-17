@@ -2,12 +2,13 @@ package controller
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -67,8 +68,8 @@ func (s *Server) InitializeServer(DbDriver, DbHost, DbUser, DbPassword, DbName, 
 	s.InitializeRoutes()
 }
 
-func (s *Server) DefaultServer(w http.ResponseWriter, r *http.Request) {
-	response.JSON(w, http.StatusOK, "Backend Service Ilmi Is Running")
+func (s *Server) DefaultServer(c *gin.Context) {
+	response.GenericJsonResponse(c, http.StatusOK, "Backend Service Ilmi Is Running", nil)
 }
 
 func (s *Server) RunServer(addr string) {

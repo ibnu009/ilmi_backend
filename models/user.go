@@ -5,18 +5,21 @@ import (
 	"encoding/hex"
 	"errors"
 	"html"
+	"ilmi_backend/auth"
 	"strings"
 
 	"github.com/badoux/checkmail"
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
 type User struct {
 	Id       uint32 `gorm:"primary_key;auto_increment" json:"id"`
 	Name     string `gorm:"size:255;not null;" json:"name"`
-	Email    string `gorm:"size:255;not null;" json:"email"`
+	Email    string `gorm:"size:255;not null;unique;" json:"email"`
 	Password string `gorm:"size:255;not null;" json:"password"`
 	Token    string `gorm:"size:255;not null;" json:"token"`
+	Otp      uint32 `gorm:"not null;" json:"otp"`
 }
 
 type TokenResponse struct {
@@ -78,8 +81,8 @@ func (u *User) CreateUser(db *gorm.DB) (*User, error) {
 }
 
 // Read
-func (u *User) GetUserProfile(db *gorm.DB, id int) (*User, error) {
-	err := db.Where("id = ?", id).First(&u).Error
+func (u *User) GetUserProfile(db *gorm.DB, c *gin.Context) (*User, error) {
+	err := db.Where("id = ?", c.Param("id")).First(&u).Error
 	if err != nil {
 		return &User{}, err
 	}
@@ -91,4 +94,47 @@ func (u *User) IsUserExist(db *gorm.DB) bool {
 		return false
 	}
 	return true
+}
+
+// chek email Otp
+func (u *User) ChekEmail(db *gorm.DB, email string) (*User, error) {
+	err := db.Where("email = ?", email).Take(&u).Error
+	if err != nil {
+		return &User{}, err
+	}
+	return u, nil
+}
+
+func (u *User) UpdateOtp(db *gorm.DB, email string, otp uint32) error {
+	// Update with conditions
+	err := db.Model(&User{}).Where("email = ?", email).Take(&User{}).Update("otp", otp).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// cek OTP
+func (u *User) ChekOtp(db *gorm.DB, c *gin.Context, otp uint64) (*User, error) {
+	if err := db.Debug().Model(&User{}).Where("otp = ?", otp).Take(&u).Error; err != nil {
+		return &User{}, err
+	}
+	return u, nil
+}
+
+// chek email if there email auto create token
+func (u *User) ChekEmailOauth2(db *gorm.DB, email string) (string, error) {
+	err := db.Where("email = ?", email).Take(&u).Error
+	if err != nil {
+		return "", err
+	}
+	return auth.CreateToken(u.Id)
+}
+
+// update password
+func (u *User) ResertPassword(db *gorm.DB, c *gin.Context, password string) (*User, error) {
+	if err := db.Model(&User{}).Where("id = ?", c.Param("id")).Take(&User{}).Update("password", password).Error; err != nil {
+		return &User{}, err
+	}
+	return u, nil
 }

@@ -1,11 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"golang.org/x/net/context"
+	"fmt"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 )
 
 // Create
@@ -43,5 +45,22 @@ func (s *Server) CreateUser(c *gin.Context) {
 	response.GenericJsonResponse(c, http.StatusCreated,
 		"Berhasil Mendaftarkan Akun Ilmi",
 		nil)
-	return
+}
+
+// get profile by id
+func (s *Server) GetProfile(c *gin.Context) {
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	user := models.User{}
+
+	profile, err := user.GetUserProfile(s.DB, c)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	response.GenericJsonResponse(c, http.StatusOK,
+		"Succes", profile)
+
 }

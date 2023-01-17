@@ -38,5 +38,6 @@ require (
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/xlzd/gotp v0.1.0
 	golang.org/x/oauth2 v0.4.0
 )

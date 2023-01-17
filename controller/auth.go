@@ -3,15 +3,16 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/net/context"
 	"ilmi_backend/auth"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 )
 
-func (server *Server) Login(c *gin.Context) {
+func (s *Server) Login(c *gin.Context) {
 	_, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -31,8 +32,8 @@ func (server *Server) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := server.SignIn(user.Email, user.Password)
-	server.UpdateTokenUser(user.Email, token)
+	token, err := s.SignIn(user.Email, user.Password)
+	s.UpdateTokenUser(user.Email, token)
 	fmt.Println(token)
 	if err != nil {
 		response.GenericJsonResponse(c, http.StatusBadRequest,
@@ -45,10 +46,10 @@ func (server *Server) Login(c *gin.Context) {
 }
 
 // chek email & SigIn
-func (server *Server) SignIn(email, password string) (string, error) {
+func (s *Server) SignIn(email, password string) (string, error) {
 	var err error
 	user := models.User{}
-	err = server.DB.Where("email = ?", email).Take(&user).Error
+	err = s.DB.Where("email = ?", email).Take(&user).Error
 	if err != nil {
 		return "", err
 	}
@@ -62,9 +63,9 @@ func (server *Server) SignIn(email, password string) (string, error) {
 }
 
 // update token
-func (server *Server) UpdateTokenUser(email, token string) (string, error) {
+func (s *Server) UpdateTokenUser(email, token string) (string, error) {
 	user := models.User{}
-	err := server.DB.Model(&user).Where("email = ?", email).Update("token", token).Error
+	err := s.DB.Model(&user).Where("email = ?", email).Update("token", token).Error
 	if err != nil {
 		return "", err
 	}

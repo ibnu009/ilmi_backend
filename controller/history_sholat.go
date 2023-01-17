@@ -2,14 +2,15 @@ package controller
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/net/context"
 	"ilmi_backend/models"
 	"ilmi_backend/request"
 	"ilmi_backend/response"
 	"math"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 )
 
 func (s *Server) GetHistorySholatByDate(c *gin.Context) {
