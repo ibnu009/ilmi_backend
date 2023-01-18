@@ -81,8 +81,8 @@ func (u *User) CreateUser(db *gorm.DB) (*User, error) {
 }
 
 // Read
-func (u *User) GetUserProfile(db *gorm.DB, c *gin.Context) (*User, error) {
-	err := db.Where("id = ?", c.Param("id")).First(&u).Error
+func (u *User) GetUserProfile(db *gorm.DB, id uint32) (*User, error) {
+	err := db.Where("id = ?", id).First(&u).Error
 	if err != nil {
 		return &User{}, err
 	}

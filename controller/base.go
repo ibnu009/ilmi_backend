@@ -58,12 +58,15 @@ func (s *Server) InitializeServer(DbDriver, DbHost, DbUser, DbPassword, DbName, 
 			fmt.Printf("connected to the %v database", DbDriver)
 		}
 	}
-	gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
+	// gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
+
 	// migrate
 	s.DB.AutoMigrate(
 		models.User{},
 		models.HistorySholat{},
+		models.JadwalSholat{},
 	)
+
 	s.Router = gin.Default()
 	s.InitializeRoutes()
 }

@@ -22,7 +22,7 @@ func (s *Server) InitializeRoutes() {
 		v1.POST("/sholat/write-sholat-history", s.CreateHistorySholat)
 		v1.GET("/sholat/get-sholat-history", s.GetHistorySholatByDate)
 
-		v1.GET("/user/:id", s.GetProfile)
+		v1.GET("/user", s.GetProfile)
 
 		//forgor password
 		v1.POST("/chekEmail", s.ChekEmailOtp)

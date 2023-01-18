@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"ilmi_backend/auth"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
 	"net/http"
@@ -54,7 +55,10 @@ func (s *Server) GetProfile(c *gin.Context) {
 
 	user := models.User{}
 
-	profile, err := user.GetUserProfile(s.DB, c)
+	convertTokenId := auth.ExtractTokenID(c)
+	fmt.Println("id User : ", uint32(convertTokenId))
+
+	profile, err := user.GetUserProfile(s.DB, convertTokenId)
 
 	if err != nil {
 		fmt.Println(err)
@@ -62,5 +66,4 @@ func (s *Server) GetProfile(c *gin.Context) {
 
 	response.GenericJsonResponse(c, http.StatusOK,
 		"Succes", profile)
-
 }

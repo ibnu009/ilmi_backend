@@ -34,15 +34,22 @@ func (s *Server) Login(c *gin.Context) {
 
 	token, err := s.SignIn(user.Email, user.Password)
 	s.UpdateTokenUser(user.Email, token)
+
 	fmt.Println(token)
+
 	if err != nil {
 		response.GenericJsonResponse(c, http.StatusBadRequest,
-			"Login Berhasil",
-			models.TokenResponse{
-				Token: token,
-			})
+			err.Error(),
+			nil)
 		return
 	}
+
+	response.GenericJsonResponse(c, http.StatusOK,
+		"Login Berhasil",
+		models.TokenResponse{
+			Token: token,
+		})
+
 }
 
 // chek email & SigIn

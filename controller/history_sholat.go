@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"ilmi_backend/auth"
 	"ilmi_backend/models"
 	"ilmi_backend/request"
 	"ilmi_backend/response"
@@ -21,8 +22,10 @@ func (s *Server) GetHistorySholatByDate(c *gin.Context) {
 	vals := c.Request.URL.Query()
 	selectedDate := vals.Get("date")
 
-	var userId = 1
-	hs, err := historySholat.GetHistorySholatByDate(s.DB, selectedDate, userId)
+	id := auth.ExtractTokenID(c)
+	fmt.Println("id User : ", uint32(id))
+
+	hs, err := historySholat.GetHistorySholatByDate(s.DB, selectedDate, id)
 
 	var responseMessage = "Berhasil Mendapatkan Data History Sholat"
 
@@ -33,7 +36,7 @@ func (s *Server) GetHistorySholatByDate(c *gin.Context) {
 	response.GenericJsonResponse(c, http.StatusOK,
 		responseMessage,
 		hs)
-	return
+
 }
 
 func (s *Server) CreateHistorySholat(c *gin.Context) {
@@ -52,9 +55,11 @@ func (s *Server) CreateHistorySholat(c *gin.Context) {
 
 	fmt.Printf("Data is %v", historySholat)
 
-	var userId = 1
-	historySholat.IdUser = uint32(userId)
-	isExisted := models.CheckIsHistorySholatCreated(s.DB, userId, sholatRequest.Date)
+	id := auth.ExtractTokenID(c)
+	fmt.Println("id User : ", uint32(id))
+
+	historySholat.IdUser = uint32(id)
+	isExisted := models.CheckIsHistorySholatCreated(s.DB, id, sholatRequest.Date)
 	historySholat, pt := writeHistoryBasedOnSholatType(historySholat, "20:30:05", sholatRequest.SholatType)
 
 	if !isExisted {
@@ -72,7 +77,7 @@ func (s *Server) CreateHistorySholat(c *gin.Context) {
 		}
 	} else {
 		fmt.Printf("Data update is %v", historySholat)
-		_, err := historySholat.UpdateHistorySholat(s.DB, historySholat, sholatRequest.Date, userId)
+		_, err := historySholat.UpdateHistorySholat(s.DB, historySholat, sholatRequest.Date, id)
 		if err != nil {
 			response.GenericJsonResponse(c, http.StatusInternalServerError,
 				err.Error(),
@@ -84,11 +89,10 @@ func (s *Server) CreateHistorySholat(c *gin.Context) {
 	response.GenericJsonResponse(c, http.StatusCreated,
 		"Berhasil mencatat waktu sholat",
 		pt)
-	return
+
 }
 
 func writeHistoryBasedOnSholatType(hs models.HistorySholat, jadwalSholat string, sholatType string) (models.HistorySholat, int) {
-
 	var now = time.Now()
 	var currentSholatTime = time.Now().Format("15:04:05")
 	layout := "15:04:05"
