@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
+
 	"log"
 	"net/http"
 	"os"
@@ -65,13 +66,18 @@ func (s *Server) InitializeServer(DbDriver, DbHost, DbUser, DbPassword, DbName, 
 		models.User{},
 		models.HistorySholat{},
 		models.JadwalSholat{},
+		models.Kota{},
+		models.Provinsi{},
 	)
+
+	// seed.SeedCities(s.DB)
+	// seed.SeedProvince(s.DB)
 
 	s.Router = gin.Default()
 	s.InitializeRoutes()
 }
 
-func (s *Server) DefaultServer(c *gin.Context) {
+func (s *Server) StatusServer(c *gin.Context) {
 	response.GenericJsonResponse(c, http.StatusOK, "Backend Service Ilmi Is Running", nil)
 }
 

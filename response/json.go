@@ -9,9 +9,25 @@ type JsonResponse struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
+type JsonGetResponse struct {
+	Count   uint64      `json:"count"`
+	Status  uint16      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
 
 func GenericJsonResponse(c *gin.Context, statusCode uint16, message string, data interface{}) {
 	res := JsonResponse{
+		Status:  statusCode,
+		Message: message,
+		Data:    data,
+	}
+	c.JSON(int(statusCode), res)
+}
+
+func GetJsonResponse(c *gin.Context, count uint64, statusCode uint16, message string, data interface{}) {
+	res := JsonGetResponse{
+		Count:   count,
 		Status:  statusCode,
 		Message: message,
 		Data:    data,

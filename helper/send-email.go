@@ -29,7 +29,11 @@ func SendBodyOtpToEmail(toEmail []string, senderName, subject, message string) e
 		"Subject: " + subject + "\n\n" +
 		message
 
-	err := ConfigSendGmail(os.Getenv("CONFIG_AUTH_EMAIL"), os.Getenv("CONFIG_AUTH_PASSWORD"), os.Getenv("CONFIG_SMTP_HOST"), os.Getenv("CONFIG_SMTP_PORT"), toEmail, []byte(body))
+	err := ConfigSendGmail(os.Getenv("CONFIG_AUTH_EMAIL"),
+		os.Getenv("CONFIG_AUTH_PASSWORD"),
+		os.Getenv("CONFIG_SMTP_HOST"),
+		os.Getenv("CONFIG_SMTP_PORT"),
+		toEmail, []byte(body))
 	if err != nil {
 		return err
 	}

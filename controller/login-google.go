@@ -45,7 +45,6 @@ func (s *Server) CallBackSignInOauth2(c *gin.Context) {
 	user := models.User{}
 	if c.Request.FormValue("state") != randomState {
 		fmt.Print("state is not valid")
-		// http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		response.ErrorResponse(c, http.StatusTemporaryRedirect, nil)
 		return
 	}
@@ -98,7 +97,6 @@ func (s *Server) CallBackSignInOauth2(c *gin.Context) {
 	user.PrepareUser()
 
 	c.Writer.Header().Set("Location", fmt.Sprintf("%s%s/%d", c.Request.Host, c.Request.RequestURI, loginOauth))
-	// fmt.Fprintf(c.Writer, "Response: %s", respBody)
 	response.GenericJsonResponse(
 		c, http.StatusOK, "Succes Login", updateTokenUser,
 	)

@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"ilmi_backend/helper"
 	"ilmi_backend/models"
 	"ilmi_backend/response"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -21,18 +19,10 @@ func (s *Server) ChekEmailOtp(c *gin.Context) {
 
 	user := models.User{}
 
-	body, err := ioutil.ReadAll(c.Request.Body)
-
-	if err != nil {
-		fmt.Println("convert Int Failed")
-	}
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
+	if err := c.BindJSON(&user); err != nil {
+		response.GenericJsonResponse(c, http.StatusBadRequest,
+			err.Error(),
+			nil)
 		return
 	}
 
@@ -71,18 +61,10 @@ func (s *Server) ValidateOtp(c *gin.Context) {
 	defer cancel()
 
 	user := models.User{}
-	body, err := ioutil.ReadAll(c.Request.Body)
-
-	if err != nil {
-		fmt.Println("convert Int Failed")
-	}
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
+	if err := c.BindJSON(&user); err != nil {
+		response.GenericJsonResponse(c, http.StatusBadRequest,
+			err.Error(),
+			nil)
 		return
 	} else {
 		chekOtp, err := user.ChekOtp(s.DB, c, uint64(user.Otp))
@@ -99,22 +81,15 @@ func (s *Server) ChangePassword(c *gin.Context) {
 	defer cancel()
 
 	user := models.User{}
-	body, err := ioutil.ReadAll(c.Request.Body)
 
-	if err != nil {
-		fmt.Println("convert Int Failed")
-	}
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		response.ErrorResponse(c, http.StatusBadRequest, err)
+	if err := c.BindJSON(&user); err != nil {
+		response.GenericJsonResponse(c, http.StatusBadRequest,
+			err.Error(),
+			nil)
 		return
 	}
+
 	hashedPassword := models.HashPasswordToSha256(user.Password)
-	// user.Password = hashedPassword
 
 	changePassword, err := user.ResertPassword(s.DB, c, hashedPassword)
 	print(changePassword)
